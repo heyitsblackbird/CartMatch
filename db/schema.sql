@@ -10,7 +10,7 @@ create table if not exists stores (
     lat double precision,
     lng double precision,
     place_id text,
-    created_at timestamptz default now(),
+    created_at timestamptz default now()
 );
 
 --------------------------Table: products---------------------
@@ -35,13 +35,13 @@ create table if not exists prices (
     price numeric(10, 2) not null,
     source text not null default 'manual',
     is_representative boolean not null default true,
-    recorded_at timestamptz default now(),
+    recorded_at timestamptz default now()
 );
 
 --- Indexes for faster queries
 create index if not exists idx_prices_store_id on prices(store_id);
 create index if not exists idx_prices_product_id on prices(product_id); 
-create index if not existsidx_products_embedding on products using ivfflat (embedding vector_cosine_ops);
+create index if not exists idx_products_embedding on products using ivfflat (embedding vector_cosine_ops);
 
 --- Row level security policies
 alter table stores enable row level security;
