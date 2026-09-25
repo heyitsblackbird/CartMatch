@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CartMatch
+
+**CartMatch is a grocery price comparison app: enter what you need to buy, and find where it's cheapest.**
+
+Grocery prices vary a lot between stores, but comparing them means flipping through flyers and websites. CartMatch aims to put prices from nearby stores (starting with Hamilton, ON) in one place so a shopper can compare a basket of items across stores.
+
+> **Status: work in progress.** The data layer is built; the user-facing app is not yet. See [Progress](#progress).
+
+## Tech Stack
+
+| Area | Choice |
+| --- | --- |
+| Framework | Next.js (App Router), React 19 |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Database | Supabase (Postgres) with Row Level Security |
+| Semantic search | `pgvector` (384-dimension product embeddings, IVFFlat cosine index) |
+
+## Data Model
+
+Defined in [db/schema.sql](db/schema.sql):
+
+- **stores**: name, address, lat/lng, place ID
+- **products**: name, brand, category, barcode, image, and an `embedding vector(384)` column for matching similar product names
+- **prices**: links a store and a product to a price, with `source` (e.g. flyer, manual), and a timestamp
+
+Indexes cover the common lookups (prices by store / product, vector similarity). RLS is enabled on every table with public read-only policies.
+
+## Progress
+
+- [x] Next.js + TypeScript + Tailwind + ESLint project setup
+- [x] Supabase client and connection test script
+- [x] Database schema with pgvector, indexes and RLS policies
+- [x] Seed data in [data/](data/): 4 stores, ~43 products, ~93 flyer prices
+- [x] CSV parser for seed imports ([scripts/imports/parseCsv.ts](scripts/imports/parseCsv.ts))
+- [x] Row validation for prices, products and stores ([scripts/imports/validateRow.ts](scripts/imports/validateRow.ts)) with typed results ([src/types/](src/types))
 
 ## Getting Started
 
-First, run the development server:
+```bash
+npm install
+```
+
+Create a `.env` file with your Supabase project credentials:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+```
+
+Run [db/schema.sql](db/schema.sql) in the Supabase SQL editor, then:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+cartmatch/
+├── data/            # Seed CSVs (stores, products, prices)
+├── db/schema.sql    # Postgres schema, indexes, RLS
+├── scripts/         # CSV parsing, validation, connection test
+└── src/
+    ├── app/         # Next.js routes
+    ├── lib/supabase # Supabase client
+    └── types/       # Product, Store, Price types
+```
