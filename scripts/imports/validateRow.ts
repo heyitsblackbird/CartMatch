@@ -40,7 +40,7 @@ export function validatePriceRow(row: Record<string, string>): ValidPriceRow{
         return { isValid: false, reason: "Missing source" };
     }
 
-    return { isValid: true, data: {product_name: row.product_name, store_name: row.store_name, price: Number(row.price), source: row.source} };
+    return { isValid: true, data: {product_name: row.product_name, product_brand: toNullIfEmpty(row.product_brand), store_name: row.store_name, price: Number(row.price), source: row.source} };
 }
 
 export function validateProductRow(row: Record<string, string>): ValidProductRow {
