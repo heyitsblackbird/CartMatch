@@ -58,3 +58,43 @@ async function insertProducts(validProducts: ProductRow[]): Promise<Record<strin
 
     return productMap;
 }
+
+async function insertPrices(validPrices: PriceRow[], storeMap: Record<string, string>, productMap: Record<string, string>): Promise<{insertedCount: number, errors: string[]}>{
+    const errors: string[] = [];
+    let insertedCount = 0;
+
+    for(const price of validPrices){
+        const storeId = storeMap[price.store_name];
+        const productId = productMap[makeProductKey(price.product_name)];
+
+        if(storeId === undefined){
+            errors.push(`Store not found for price entry: ${price.store_name}`);
+            continue;
+        }
+
+        if(productId === undefined){
+            errors.push(`Product not found for price entry: ${price.product_name}`);
+            continue;
+        }
+
+        const {error} = await supabase
+        .from('prices')
+        .insert({
+            store_id: storeId,
+            product_id: productId,
+            price: price.price,
+            source: price.source
+        });
+
+        if(error){
+            errors.push(`Error inserting price for product ${price.product_name} at store ${price.store_name}: ${error.message}`);
+            continue;
+        }
+
+        insertedCount++;
+    }
+
+    return {insertedCount, errors};
+}
+
+export { insertStores, insertProducts, insertPrices };
