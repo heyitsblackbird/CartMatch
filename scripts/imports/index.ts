@@ -2,7 +2,7 @@ import parseCsv from "./parseCsv";
 import {validateProductRow, validatePriceRow, validateStoreRow} from "./validateRow";
 import {insertProducts, insertPrices, insertStores} from "./insertRows";
 import {StoreRow} from "../../src/types/store";
-
+import supabase from '@/lib/supabase/client';
 function validateAndSplit<T>(
   rows: Record<string, string>[],
   validate: (row: Record<string, string>) => { isValid: true; data: T } | { isValid: false; reason: string }
@@ -24,10 +24,17 @@ function validateAndSplit<T>(
   return { valid, rejected };
 }
 
+async function wipeDatabase(): Promise<void> {
+  const { error: productsError } = await supabase.from("products").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (productsError) throw new Error(`Failed to wipe products: ${productsError.message}`);
 
-
+  const { error: storesError } = await supabase.from("stores").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (storesError) throw new Error(`Failed to wipe stores: ${storesError.message}`);
+}
 
 async function main(){
+
+    await wipeDatabase();
     const rawStoreRows = parseCsv('data/stores.csv');
     const rawProductRows = parseCsv('data/products.csv');
     const rawPriceRows = parseCsv('data/prices.csv');
